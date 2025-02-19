@@ -6,10 +6,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @SpringBootApplication
 @EnableJpaAuditing
-public class SpringBootPostgreSqlApplication {
+public class SpringBootPostgreSqlKeycloakApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(SpringBootPostgreSqlApplication.class, args);
+        SpringApplication.run(SpringBootPostgreSqlKeycloakApplication.class, args);
     }
 
 }

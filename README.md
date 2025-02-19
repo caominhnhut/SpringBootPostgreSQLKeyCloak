@@ -1,6 +1,6 @@
-# Spring Boot PostgreSQL Example
+# Spring Boot PostgreSQL with Keycloak Example
 
-A simple Spring Boot application demonstrating integration with PostgreSQL database.
+A simple Spring Boot application demonstrating integration with PostgreSQL database and Keycloak for authentication.
 
 ## Prerequisites
 
@@ -10,7 +10,7 @@ A simple Spring Boot application demonstrating integration with PostgreSQL datab
 
 ## Setup
 
-1. Start PostgreSQL using Docker Compose:
+1. Start PostgreSQL and Keycloak using Docker Compose:
 ```bash
 docker compose up -d
 ```
@@ -29,12 +29,10 @@ mvn spring-boot:run -Dspring-boot.run.profiles=dev
 
 The application uses Spring profiles for different environments:
 - `dev` - Development environment
-- `prod` - Production environment
 - `test` - Testing environment
 
 Each profile has its own configuration in:
 - `application-dev.properties`
-- `application-prod.properties`
 - `application-test.properties`
 
 Choose the appropriate profile when running the application.
@@ -42,17 +40,76 @@ Choose the appropriate profile when running the application.
 Update `src/main/resources/application.properties`:
 
 ```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/your_database
+# Database Configuration
+spring.datasource.url=jdbc:postgresql://localhost:5433/your_database
 spring.datasource.username=your_username
 spring.datasource.password=your_password
+
+# Keycloak Configuration
+spring.security.oauth2.resourceserver.jwt.jwk-set-uri=http://localhost:8080/realms/your-realm/protocol/openid-connect/certs
+```
+
+To configure Keycloak:
+1. Create a new realm in Keycloak
+2. Update the application.properties with your realm name
+
+## Keycloak Setup
+
+1. Access Keycloak Admin Console:
+   - Open http://localhost:8080
+   - Login with default admin credentials (admin/admin)
+
+2. Create a new realm:
+   - Click "Create Realm"
+   - Set Name: `test`
+   - Click "Create"
+
+3. Create a new client:
+   - Go to Clients → Create client
+   - Client ID: `spring-boot-postgre-sql-keycloak`
+   - Client Protocol: `openid-connect`
+   - Click "Next"
+   - Client authentication: `OFF`
+   - Authentication flow: check `Direct access grants` only
+   - Click "Save"
+
+4. Create ADMIN role:
+   - Go to Realm roles → Create role
+   - Role name: `ADMIN`
+   - Click "Save"
+
+5. Create a new user:
+   - Go to Users → Add user
+   - Username: `user`
+   - Click "Create"
+   - Go to Credentials tab
+   - Set password: `user`
+   - Turn off "Temporary" password
+   - Click "Save credentials"
+   - Go to Role mapping tab
+   - Click "Assign role"
+   - Select "ADMIN"
+   - Click "Assign"
+
+## Authentication
+
+To get an access token, use the following curl command:
+
+```bash
+curl --location 'localhost:8080/realms/test/protocol/openid-connect/token' \
+--header 'Content-Type: application/x-www-form-urlencoded' \
+--data-urlencode 'client_id=spring-boot-postgre-sql-keycloak' \
+--data-urlencode 'grant_type=password' \
+--data-urlencode 'username=user' \
+--data-urlencode 'password=user'
+```
+
+Use the obtained token in the Authorization header for subsequent API requests:
+```bash
+Authorization: Bearer <your_token>
 ```
 
 ## API Endpoints
-
-### Authentication Endpoints
-- POST `/api/auth/login` - Authenticate user
-- POST `/api/auth/signup` - Register new user
-- POST `/api/auth/signout` - Logout user
 
 ### User Endpoints
 - GET `/api/users` - Get all users
@@ -80,6 +137,7 @@ spring.datasource.password=your_password
 - Spring Boot
 - Spring Data JPA
 - Spring Security
+- Keycloak
 - Spring Audit
 - PostgreSQL
 - Flyway (Database Migration)

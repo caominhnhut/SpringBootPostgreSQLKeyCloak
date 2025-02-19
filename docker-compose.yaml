@@ -1,18 +1,61 @@
 version: '3.8'
 
 services:
-  spring-boot-postgre-sql:
-    image: postgres:16
-    container_name: spring-boot-postgre-sql
+  postgres_keycloak:
+    image: postgres:16.2
+    container_name: postgres_keycloak
+    hostname: postgres_keycloak
+    volumes:
+      - postgres_keycloak_data:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: spring-boot-postgre-sql
+      POSTGRES_DB: keycloak_db
+      POSTGRES_USER: keycloak_db_user
+      POSTGRES_PASSWORD: keycloak_db_user_password
       TZ: UTC
     ports:
       - "5432:5432"
+
+  postgres_app:
+    image: postgres:16.2
+    container_name: postgres_app
+    hostname: postgres_app
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_app_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: app_db
+      POSTGRES_USER: app_user
+      POSTGRES_PASSWORD: app_password
+      TZ: UTC
+    ports:
+      - "5433:5432"
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0.0
+    container_name: keycloak
+    hostname: keycloak
+    command: start
+    environment:
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: 8080
+      KC_HOSTNAME_STRICT_BACKCHANNEL: false
+      KC_HTTP_ENABLED: true
+      KC_HOSTNAME_STRICT_HTTPS: false
+      KC_HEALTH_ENABLED: true
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: password
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres_keycloak/keycloak_db
+      KC_DB_USERNAME: keycloak_db_user
+      KC_DB_PASSWORD: keycloak_db_user_password
+      TZ: UTC
+    ports:
+      - "8080:8080"
+    restart: always
+    depends_on:
+      - postgres_keycloak
 
 volumes:
-  postgres_data:
+  postgres_keycloak_data:
+    driver: local
+  postgres_app_data:
+    driver: local
