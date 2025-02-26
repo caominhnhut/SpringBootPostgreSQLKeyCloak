@@ -1,0 +1,38 @@
+spring:
+  application:
+    name: spring-boot-postgre-sql
+
+  datasource:
+    url: jdbc:postgresql://localhost:5433/app_db
+    username: app_user
+    password: app_password
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: http://localhost:8080/realms/test/protocol/openid-connect/certs
+
+server:
+  port: 8082
+
+logging:
+  level:
+    root: info
+    com.sts: info
+    org.springframework: info
+    org.hibernate: info
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} [%file:%line] - %msg%n"
